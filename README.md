@@ -1,8 +1,8 @@
 # getjoomla.sh
-A bash script to download and prepare latest Joomla! release on linux based systems.
+A bash script to download and prepare latest Joomla! installation on linux based systems.
 
 # Instructions
-- Download `getjoomla.sh` and place it in $PATH directory for example like this `wget -q https://raw.githubusercontent.com/bestproject/getjoomla.sh/master/getjoomla.sh -O /bin/getjoomla`
+- Download `getjoomla.sh` and place it in $PATH directory for example like this `wget https://raw.githubusercontent.com/bestproject/getjoomla.sh/master/getjoomla.sh -qO /bin/getjoomla`
 - Give it run permissions like this `chmod +x getjoomla`
 - Go into directory where you want to prepare Joomla! installation
 - Run `getjoomla`
@@ -19,5 +19,5 @@ A bash script to download and prepare latest Joomla! release on linux based syst
 
 # Sample installation
 ```bash
-wget -q https://raw.githubusercontent.com/bestproject/getjoomla.sh/master/getjoomla.sh -O /bin/getjoomla && chmod +x /bin/getjoomla
+wget https://raw.githubusercontent.com/bestproject/getjoomla.sh/master/getjoomla.sh -qO /bin/getjoomla && chmod +x /bin/getjoomla
 ```
