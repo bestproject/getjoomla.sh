@@ -8,16 +8,16 @@ A bash script to download and prepare Joomla! installation on linux based system
 - Run `getjoomla`
 - Go to your domain and just run installation
  
-## How to get latest Joomla! version
+## How to get the latest Joomla! version
 - Run `getjoomla`
  
-## How to get list of available Joomla! versions
+## How to get a list of available Joomla! versions
 - Run `getjoomla versions`
 
-## How to get specific Joomla! version
+## How to get a specific Joomla! version
 - Run get joomla with version number  eg. `getjoomla 3.6.2`
 
-# Sample installation
+# Installation
 ```bash
 wget https://raw.githubusercontent.com/bestproject/getjoomla.sh/master/getjoomla.sh -qO /bin/getjoomla && chmod +x /bin/getjoomla
 ```
