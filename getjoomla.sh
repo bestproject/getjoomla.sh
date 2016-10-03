@@ -1,37 +1,127 @@
 #!/bin/bash
 
-# Get Joomla! version
-echo
-echo 'Getting lastest version'
-JOOMLA_VERSION=$(curl -ks "https://api.github.com/repos/joomla/joomla-cms/releases/latest" | python -c "import json,sys;obj=json.load(sys.stdin);print obj['tag_name'];");
+SCRIPT_VERSION="v1.1 Copyrights 2016 Best Project. Licensed under GNU/GPL-3.0";
 
-# Prepare URLs and names
-JOOMLA_VERSION_FILE="Joomla_$JOOMLA_VERSION-Stable-Full_Package.zip";
-JOOMLA_VERSION_FILE_URL="https://github.com/joomla/joomla-cms/releases/download/$JOOMLA_VERSION/$JOOMLA_VERSION_FILE"
+# Get list of available Joomla! versions
+function getVersions
+{
+    CODE="import json,sys; releases=json.load(sys.stdin); versions=[];[versions.append(release['tag_name']) for release in releases];print \", \".join(versions)"
+    VERSIONS=$(curl -ks "https://api.github.com/repos/joomla/joomla-cms/releases" | python -c "$CODE");
+    echo "Available versions:"
+    echo $VERSIONS
+}
 
-# Download joomla
-echo "Downloading Joomla! $JOOMLA_VERSION ..."
-wget $JOOMLA_VERSION_FILE_URL -qO joomla.zip
+# Download, unpack and prepare Joomla! installer
+function downloadFile
+{
+    # Download and unpack Joomla! archive
+    echo "Downloading installator."
+    if [[ $1 == *.tar.bz2 ]]; then
+        wget $1 -qO joomla-inst.tar.bz2
+        echo "Unpacking."
+	tar -xjf joomla-inst.tar.bz2
+    elif [[ $1 == *.zip  ]]; then
+        wget $1 -qO joomla-inst.zip
+        echo "Unpacking."
+        unzip joomla-inst.zip
+    elif [[ $1 == *.tar ]]; then
+        wget $1 -qO joomla-inst.tar
+        echo "Unpacking."
+        tar -xf joomla-inst.tar
+    elif [[ $1 = *.tar.gz ]]; then
+        wget $1 -qO joomla-inst.tar.gz
+        echo "Unpacking."
+        tar -xzf joomla-inst.tar.gz
+    else
+	echo "Cannot find supported asset file in provided relase tag ($1). It is possible that such Joomla! release doesn't exist."
+    fi
 
-# Unpacking files
-echo "Unpacking..."
-unzip -q joomla.zip
-rm joomla.zip
-echo "Creating .htaccess"
-cp htaccess.txt .htaccess
+    # Remove archive and prepare installation
+    if ls ./joomla-inst.* 1> /dev/null 2>&1; then
+        prepareInstallation
+        rm joomla-inst.*
+    fi
+}
 
-# Fixing files owner
-OWNER=$(ls -ld | awk '{print $3}')":"$(ls -ld | awk '{print $4}')
-echo "Fixing files owner to $OWNER"
-chown $OWNER -R *
-chown $OWNER .htaccess
+# Prepare Joomla! installation 
+function prepareInstallation
+{
+    echo "Creating .htaccess file."
+    cp ./htaccess.txt ./.htaccess
 
-# Fixing files permissions
-echo "Fixing files permissions (0644 for files, 0755 for directories)"
-find . -type f -exec chmod 0644 {} \;
-find . -type d -exec chmod 0755 {} \;
-echo
-echo "DONE."
-echo
+    echo "Fixing ownership."
+    OWNER=$(ls -ld | awk '{print $3}')":"$(ls -ld | awk '{print $4}')
+    chown $OWNER -R *
+    chown $OWNER .htaccess
+
+    echo "Fixing file permissions."
+    find . -type f -exec chmod 644 {} \;
+    find . -type d -exec chmod 755 {} \;
+
+    echo "DONE."
+}
+
+# Get latest Joomla! version
+function getLatestVersion
+{
+    CODE="import json,sys;
+release=json.load(sys.stdin);
+if 'assets' in release:
+    for asset in release['assets']:
+        if 'Full_Package' in asset['browser_download_url']:
+            print asset['browser_download_url']
+            break
+";
+    URL=$(curl -ks "https://api.github.com/repos/joomla/joomla-cms/releases/latest" | python -c "$CODE");
+    downloadFile $URL
+}
+
+# Get a selected Joomla! version
+function getVersion
+{
+    CODE="import json,sys;
+release=json.load(sys.stdin);
+if 'assets' in release:
+    for asset in release['assets']:
+        if 'Full_Package' in asset['browser_download_url']:
+            print asset['browser_download_url']
+            break
+";
+    URL=$(curl -ks "https://api.github.com/repos/joomla/joomla-cms/releases/tags/$1" | python -c "$CODE");
+    downloadFile $URL
+}
+
+# Help info
+function displayHelp
+{
+    echo ""
+    echo "Usage: getjoomla [OPTION|VERSION_NUMBER]"
+    echo ""
+    echo "Available params:"
+    echo " help, -h, --help		Display this screen"
+    echo " versions			List available Joomla! versions"
+    echo " -v, --version			Display the version of this script"
+    echo ""
+    echo "How to get latest version:"
+    echo " - Just type \"getjoomla\""
+    echo ""
+    echo "How to get a selected Joomla! version:"
+    echo " - \"getjoomla 3.6.2\""
+    echo ""
+    echo "How to get a list of avaiable versions:"
+    echo " - \"getjoomla versions\""
+}
 
 
+# App flow
+if [ "$1" = "versions" ]; then
+    getVersions
+elif [ "$1" = "--help" ] || [ "$1" = "help" ] || [ "$1" = "-h" ]; then
+    displayHelp
+elif [ "$1" = "--version" ] || [ "$1" = "-v" ]; then
+    echo "GetJoomla $SCRIPT_VERSION"
+elif [ "$1" != "" ]; then
+    getVersion $1
+else
+    getLatestVersion
+fi;
