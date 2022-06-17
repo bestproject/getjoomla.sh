@@ -5,10 +5,13 @@ SCRIPT_VERSION="v1.1 Copyrights 2016 Best Project. Licensed under GNU/GPL-3.0";
 # Get list of available Joomla! versions
 function getVersions
 {
-    CODE="import json,sys; releases=json.load(sys.stdin); versions=[];[versions.append(release['tag_name']) for release in releases];print \", \".join(versions)"
-    VERSIONS=$(curl -ks "https://api.github.com/repos/joomla/joomla-cms/releases" | python -c "$CODE");
-    echo "Available versions:"
-    echo $VERSIONS
+   echo "Available versions:"
+   CODE="import json,sys;
+releases=json.load(sys.stdin);
+for release in releases:
+   print release['tag_name']
+";
+   curl -ks "https://api.github.com/repos/joomla/joomla-cms/releases" | python -c "$CODE";
 }
 
 # Download, unpack and prepare Joomla! installer
